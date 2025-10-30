@@ -14,6 +14,7 @@ import seaborn as sns
 from datetime import datetime, timedelta
 import warnings
 import sys
+import os
 warnings.filterwarnings('ignore')
 sys.stdout.flush()
 
@@ -91,7 +92,7 @@ class BrentTradingSystem:
     - Trade statistics and CSV export
     """
     
-    def __init__(self, initial_capital=10_000_000):
+    def __init__(self, initial_capital=10_000_000, output_dir='output'):
         """
         Initialize the trading system.
         
@@ -99,6 +100,8 @@ class BrentTradingSystem:
         -----------
         initial_capital : float
             Starting capital in USD
+        output_dir : str
+            Directory to save all output files (CSV, plots)
         """
         self.initial_capital = initial_capital
         self.data = None
@@ -107,6 +110,10 @@ class BrentTradingSystem:
         self.model = None
         self.scaler = StandardScaler()
         self.feature_names = None
+        self.output_dir = output_dir
+        
+        # Create output directory if it doesn't exist
+        os.makedirs(self.output_dir, exist_ok=True)
         
     def extract_data(self, start_date="2020-07-01", end_date='2025-08-31'):
         """
@@ -413,7 +420,7 @@ class BrentTradingSystem:
         plt.tight_layout()
         
         # Save plot
-        plot_filename = 'feature_importance_rfe.png'
+        plot_filename = os.path.join(self.output_dir, 'feature_importance_rfe.png')
         plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"✓ Feature importance plot saved: {plot_filename}")
@@ -966,13 +973,13 @@ g
                     })
             
             trade_log_df = pd.DataFrame(trade_log)
-            csv_filename = f'trades_{period_name}_period.csv'
+            csv_filename = os.path.join(self.output_dir, f'trades_{period_name}_period.csv')
             trade_log_df.to_csv(csv_filename, index=False)
             print(f"✓ Backtest completed: {len(trade_log_df)} trades saved to {csv_filename}")
         
         # Save equity curve to CSV for performance metrics calculation
         if not equity_curve_df.empty:
-            equity_csv_filename = f'equity_{period_name}_period.csv'
+            equity_csv_filename = os.path.join(self.output_dir, f'equity_{period_name}_period.csv')
             equity_curve_df.to_csv(equity_csv_filename)
         
         return trades_df, equity_curve_df
@@ -1072,8 +1079,7 @@ g
         print("="*80)
         
         # SECTION 1: TRADING STATISTICS (from CSV - each row is a trade)
-        csv_filename = f'trades_{period_name}_period.csv'
-        import os
+        csv_filename = os.path.join(self.output_dir, f'trades_{period_name}_period.csv')
         
         if os.path.exists(csv_filename):
             try:
@@ -1312,8 +1318,7 @@ g
         ax2.tick_params(axis='x', rotation=45, labelsize=8)
         
         # 3. Cumulative Daily Profit/Loss (read from equity CSV)
-        equity_csv_filename = f'equity_{period_name}_period.csv'
-        import os
+        equity_csv_filename = os.path.join(self.output_dir, f'equity_{period_name}_period.csv')
         if os.path.exists(equity_csv_filename):
             # Read equity from CSV
             equity_df = pd.read_csv(equity_csv_filename, index_col=0, parse_dates=True)
@@ -1372,9 +1377,8 @@ g
         ax4.axis('off')
         
         # Read from CSV to ensure consistency with terminal output
-        csv_filename = f'trades_{period_name}_period.csv'
-        equity_csv_filename = f'equity_{period_name}_period.csv'
-        import os
+        csv_filename = os.path.join(self.output_dir, f'trades_{period_name}_period.csv')
+        equity_csv_filename = os.path.join(self.output_dir, f'equity_{period_name}_period.csv')
         
         if os.path.exists(csv_filename):
             try:
@@ -1468,7 +1472,7 @@ g
         plt.tight_layout()
         
         # Save the plot
-        plot_filename = f'trading_results_{period_name}_period.png'
+        plot_filename = os.path.join(self.output_dir, f'trading_results_{period_name}_period.png')
         plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
         plt.close()
         print(f"✓ Plot saved: {plot_filename}")
@@ -1576,7 +1580,8 @@ g
         print("\n" + "="*80)
         print(" "*25 + "FILES GENERATED")
         print("="*80)
-        print("  CSV Files:")
+        print(f"  Output Directory: {self.output_dir}/")
+        print("\n  CSV Files:")
         print("    • trades_training_period.csv")
         print("    • trades_validation_period.csv")
         print("    • equity_training_period.csv")
