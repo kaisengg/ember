@@ -149,6 +149,10 @@ class BrentTradingSystem:
                       "WTI_Close","WTI_High","WTI_Low","WTI_Volume"]
             df = df[ordered]
             df = df.dropna(how="all")  # Remove completely empty rows
+
+            csv_data = f'crude_oil_data.csv'
+            df.to_csv(csv_data, index=False)
+            
             
             # Create price columns for convenience
             df['Brent_Price'] = df['Brent_Close']
